@@ -6,6 +6,17 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 import 'coordinates_translator.dart';
 
+const contours = [
+  FaceContourType.leftEye,
+  FaceContourType.rightEye,
+  FaceContourType.upperLipTop,
+  FaceContourType.upperLipBottom,
+  FaceContourType.lowerLipTop,
+  FaceContourType.lowerLipBottom,
+  FaceContourType.noseBottom,
+  FaceContourType.noseBridge
+];
+
 class FaceDetectorPainter extends CustomPainter {
   FaceDetectorPainter(
     this.faces,
@@ -21,56 +32,21 @@ class FaceDetectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint1 = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0
-      ..color = Colors.red;
     final Paint paint2 = Paint()
       ..style = PaintingStyle.fill
-      ..strokeWidth = 1.0
+      ..strokeWidth = 2.0
       ..color = Colors.green;
 
+    // final double scaleX = size.width / imageSize.width;
+    // final double scaleY = size.height / imageSize.height;
+
     for (final Face face in faces) {
-      final left = translateX(
-        face.boundingBox.left,
-        size,
-        imageSize,
-        rotation,
-        cameraLensDirection,
-      );
-      final top = translateY(
-        face.boundingBox.top,
-        size,
-        imageSize,
-        rotation,
-        cameraLensDirection,
-      );
-      final right = translateX(
-        face.boundingBox.right,
-        size,
-        imageSize,
-        rotation,
-        cameraLensDirection,
-      );
-      final bottom = translateY(
-        face.boundingBox.bottom,
-        size,
-        imageSize,
-        rotation,
-        cameraLensDirection,
-      );
-
-      canvas.drawRect(
-        Rect.fromLTRB(left, top, right, bottom),
-        paint1,
-      );
-
       void paintContour(FaceContourType type) {
         final contour = face.contours[type];
         if (contour?.points != null) {
           for (final Point point in contour!.points) {
             canvas.drawCircle(
-                Offset(
+              Offset(
                   translateX(
                     point.x.toDouble(),
                     size,
@@ -84,45 +60,16 @@ class FaceDetectorPainter extends CustomPainter {
                     imageSize,
                     rotation,
                     cameraLensDirection,
-                  ),
-                ),
-                1,
-                paint1);
+                  )),
+              3,
+              paint2,
+            );
           }
         }
       }
 
-      void paintLandmark(FaceLandmarkType type) {
-        final landmark = face.landmarks[type];
-        if (landmark?.position != null) {
-          canvas.drawCircle(
-              Offset(
-                translateX(
-                  landmark!.position.x.toDouble(),
-                  size,
-                  imageSize,
-                  rotation,
-                  cameraLensDirection,
-                ),
-                translateY(
-                  landmark.position.y.toDouble(),
-                  size,
-                  imageSize,
-                  rotation,
-                  cameraLensDirection,
-                ),
-              ),
-              2,
-              paint2);
-        }
-      }
-
-      for (final type in FaceContourType.values) {
+      for (final type in contours) {
         paintContour(type);
-      }
-
-      for (final type in FaceLandmarkType.values) {
-        paintLandmark(type);
       }
     }
   }
